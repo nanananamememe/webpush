@@ -1,11 +1,16 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="UTF-8">
-    <title>VAPID WebPush Demo</title>
+  <meta charset="UTF-8">
+  <title>VAPID WebPush Demo</title>
+  <link rel="icon" href="data:,">
 </head>
 <body>
-    <button id="btnWebPushTest">プッシュ通知テスト</button>
-    <script src="vapid_demo.js"></script>
+  TITLE: <input type="text" size="75" id="wpTitle" value="あたらしいWeb Pushが送信されました"><br>
+  BODY: <input type="text" size="75" id="wpBody" value="Web Pushです。この通知をクリックするとsample.txtに遷移します。"><br>
+  URL: <input type="text" size="75" id="wpUrl" value="/sample.txt"><br>
+  ICON: <input type="text" size="75" id="wpIcon" value="/eto.png"><br>
+  <button id="btnWebPushTest">プッシュ通知テスト</button>
+  <script src="vapid_demo.js"></script>
 </body>
 </html>

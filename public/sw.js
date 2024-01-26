@@ -4,10 +4,22 @@ self.addEventListener('push', evt => {
     const title = data.title;
     const options = {
         body: data.body,
-        icon: 'test.jpg'
+        data: data.data,
+        icon: data.icon,
     }
     evt.waitUntil(self.registration.showNotification(title, options));
 });
 self.addEventListener('notificationclick', evt => {
-    evt.notification.close();
+  evt.notification.close();
+  var url = "/"
+  if (evt.notification.data.url) {
+    url = evt.notification.data.url
+  }
+  evt.waitUntil(
+    clients.matchAll({type: 'window'}).then(function() {
+      if(clients.openWindow) {
+        return clients.openWindow(url)
+      }
+    })
+  )
 });

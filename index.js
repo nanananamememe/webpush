@@ -1,38 +1,44 @@
-const Koa = require('koa');
-const Router = require('koa-router');
-const serve = require('koa-static');
-const koaBody = require('koa-body');
+"use strict";
+const express = require("express");
+const bodyParser = require("body-parser");
+const cookieParser = require("cookie-parser");
+const path = require("path");
 const webPush = require('web-push');
-
-const app = new Koa();
-const router = new Router();
-const vapidKeys = webPush.generateVAPIDKeys();
-
-webPush.setVapidDetails(
-    'mailto:hoge@fuga.piyo', // 第一引数は'mailto:～'というフォーマットでないとだめらしい
-    vapidKeys.publicKey,
-    vapidKeys.privateKey
-);
-
-router
-    .get('/key', ctx => {
-        ctx.body = vapidKeys.publicKey;
-    })
-    .post('/webpushtest', koaBody(), async ctx => {
-        try {
-            setTimeout(_ => { // ちょっと遅延させて通知
-                await webPush.sendNotification(ctx.request.body, JSON.stringify({
-                    title: 'Web Push通知テスト',
-                }));
-            }, 5000);
-        } catch (err) {
-            console.log(err);
-        }
-    });
-
-app
-    .use(serve(__dirname + '/public'))
-    .use(router.routes())
-    .use(router.allowedMethods());
-
-app.listen(3000);
+require('dotenv').config();
+const app = express();
+app.use(express.static(path.join(__dirname, "public")));
+app.use(bodyParser.json());
+app.use(cookieParser());
+app.listen(80);
+app.get("/",
+  (req,res)=>res.send("GET request to the web-site.")
+)
+.get('/key', function(req,res){
+  const vapidKeys = webPush.generateVAPIDKeys();
+  var vapidPublicKey = process.env.VAPID_PUBLIC_KEY || vapidKeys.publicKey;
+  var vapidPrivateKey = process.env.VAPID_PRIVATE_KEY || vapidKeys.privateKey;
+  res.send({"vapidPublicKey": vapidPublicKey ,"vapidPrivateKey": vapidPrivateKey});
+})
+.post("/webpushtest",function(req,res){
+  try {
+    let keys = JSON.parse(req.body.vapidKeys);
+    let sb = JSON.parse(req.body.vapidSubscription);
+    var vapidPublicKey = keys.vapidPublicKey;
+    var vapidPrivateKey = keys.vapidPrivateKey;
+    webPush.setVapidDetails('mailto:' + process.env.VAPID_MAIL_TO, vapidPublicKey, vapidPrivateKey);
+    setTimeout(async _ => {
+      await webPush.sendNotification(sb, JSON.stringify({
+        "title": req.body.title,
+        "body": req.body.body,
+        "data":{ 
+          "url": req.body.url
+        },
+        "icon": req.body.icon
+      }));
+    }, 500);
+  } catch (err) {
+      console.log(err);
+  }
+  res.send("[]");
+})
+;
